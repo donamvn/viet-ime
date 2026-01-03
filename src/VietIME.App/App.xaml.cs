@@ -28,9 +28,6 @@ public partial class App : System.Windows.Application
         
         // Hiển thị thông báo
         ShowBalloonTip("VietIME đã khởi động", "Nhấn Ctrl+Shift để bật/tắt");
-        
-        // Mở cửa sổ debug ngay khi khởi động
-        ShowSettings();
     }
     
     private void Application_Exit(object sender, ExitEventArgs e)
