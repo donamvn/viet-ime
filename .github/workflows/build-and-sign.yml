@@ -1,10 +1,10 @@
-name: Build and Sign
+name: Build and Release
 
 on:
   push:
     tags:
-      - 'v*'  # Chỉ chạy khi push tag version (v1.0.0, v1.1.0, etc.)
-  workflow_dispatch:  # Cho phép chạy thủ công
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,45 +28,15 @@ jobs:
       - name: Publish
         run: dotnet publish src/VietIME.App -c Release -o ./publish --no-build
 
-      - name: Upload unsigned artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VietIME-unsigned
+          name: VietIME
           path: ./publish/
-          retention-days: 1
-
-  sign:
-    needs: build
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Download unsigned artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: VietIME-unsigned
-          path: ./unsigned
-
-      - name: Sign with SignPath
-        uses: signpath/github-action-submit-signing-request@v1
-        with:
-          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-          organization-id: '${{ secrets.SIGNPATH_ORGANIZATION_ID }}'
-          project-slug: 'viet-ime'
-          signing-policy-slug: 'release-signing'
-          artifact-configuration-slug: 'initial-version'
-          github-artifact-id: 'VietIME-unsigned'
-          wait-for-completion: true
-          output-artifact-directory: './signed'
-
-      - name: Upload signed artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: VietIME-signed
-          path: ./signed/
           retention-days: 90
 
   release:
-    needs: sign
+    needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     
@@ -74,10 +44,10 @@ jobs:
       contents: write
     
     steps:
-      - name: Download signed artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: VietIME-signed
+          name: VietIME
           path: ./release
 
       - name: Create Release
@@ -87,3 +57,10 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+          body: |
+            ## Tải xuống
+            - Tải file `VietIME.exe` bên dưới
+            - Windows có thể cảnh báo SmartScreen - click "More info" → "Run anyway"
+            
+            ## Phím tắt
+            - `Ctrl + Shift`: Bật/tắt VietIME
